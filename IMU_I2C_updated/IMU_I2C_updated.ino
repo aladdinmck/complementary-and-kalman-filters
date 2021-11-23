@@ -168,6 +168,16 @@ ComplementaryFilter(accelX, accelX, accelX, gyrX, gyrX, gyrX, pitch, roll);
 
 
 
+/*
+  accelXRaw = LSM.readRawAccelX();
+  accelYRaw = LSM.readRawAccelY();
+  accelZRaw = LSM.readRawAccelZ();
+*/
+  
+  roll = atan2(accelYRaw, accelZRaw) * 180 / M_PI;
+  //pitch = atan2(-accelXRaw, sqrt((accelYRaw * accelYRaw) + (accelZRaw * accelZRaw))) * 180 / M_PI;
+  pitch = acos(accelX) * 180 / M_PI;
 
+  Serial.println(String("Roll: ") + roll + String("    Pitch: ") + pitch);
   
 }
