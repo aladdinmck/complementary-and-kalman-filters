@@ -6,16 +6,23 @@ MLX90393 MLX;
 MLX90393::txyz data; //Create a structure, called data, of four floats (t, x, y, and z)
 LSM6DSO LSM;
 
-#define ACCELEROMETER_SENSITIVITY 8192.0
+#define ACCELEROMETER_SENSITIVITY 32543.83
 #define GYROSCOPE_SENSITIVITY 65.536
-#define M_PI 3.14159265359
+//#define M_PI 3.14159265359
 #define dt 0.01
 
 float magX, magY, magZ, magTemp, accelX, accelY, accelZ, gyrX, gyrY, gyrZ, IMUTemp;
 uint16_t accelXRaw, accelYRaw, accelZRaw, gyrXRaw, gyrYRaw, gyrZRaw, accelRange, gyroRange;
 float gyroDataRange, accelDataRange;
-float *pitch;
-float *roll;
+float pitch;
+float roll;
+
+float angleX = 0;
+float angleY = 0;
+float angleZ = 0;
+
+//float dt = millis();
+
 //float pitchAcc;
 
 void setup()
@@ -25,11 +32,11 @@ void setup()
   
   //failsafe error checking to prevent irri\tation with no output. basically checks to make sure both sensors are connected and running
   if (!LSM.begin()) {
-    Serial.println("IMU not found. Check wiring!");
+    //Serial.println("IMU not found. Check wiring!");
     delay(500);
   }
   if (!MLX.begin()) {
-    Serial.println("Magnetometer not found. Check wiring!");
+    //Serial.println("Magnetometer not found. Check wiring!");
     delay(500);
   }
   
@@ -44,7 +51,7 @@ void setup()
   MLX.setDigitalFiltering(0);
   
   if (LSM.initialize(BASIC_SETTINGS)) {
-    Serial.println("Loaded Basic Settings");
+    //Serial.println("Loaded Basic Settings");
   }
   delay(500);
 }//end of setup
@@ -110,11 +117,11 @@ void ComplementaryFilter(float accX, float accY, float accZ, float gX, float gY,
         *roll = *roll * 0.98 + rollAcc * 0.02;
     }
 
-    printf("&pitch   = %p\n", (void *) &pitch);
-    printf("&roll    = %p\n", (void *) &roll);
+    //printf("&pitch   = %p\n", (void *) &pitch);
+    //printf("&roll    = %p\n", (void *) &roll);
 
-    Serial.println((void *) &pitch);
-    Serial.println((void *) &roll);
+    //Serial.println((void *) &pitch);
+    //Serial.println((void *) &roll);
     
     //Serial.println(String(**pitch));
     //Serial.println(String(**roll));
@@ -133,7 +140,7 @@ void loop()
 
   // Pieter Jan code
   
-ComplementaryFilter(accelX, accelX, accelX, gyrX, gyrX, gyrX, pitch, roll);
+//ComplementaryFilter(accelX, accelX, accelX, gyrX, gyrX, gyrX, pitch, roll);
 
   //this same structure applies to all functions. Just change acceleration and the value name to your respective function. 
   //Serial.println("Acceleration Values:");
@@ -173,11 +180,34 @@ ComplementaryFilter(accelX, accelX, accelX, gyrX, gyrX, gyrX, pitch, roll);
   accelYRaw = LSM.readRawAccelY();
   accelZRaw = LSM.readRawAccelZ();
 */
-  
+  /*
   roll = atan2(accelYRaw, accelZRaw) * 180 / M_PI;
-  //pitch = atan2(-accelXRaw, sqrt((accelYRaw * accelYRaw) + (accelZRaw * accelZRaw))) * 180 / M_PI;
   pitch = acos(accelX) * 180 / M_PI;
 
-  Serial.println(String("Roll: ") + roll + String("    Pitch: ") + pitch);
+  angleX = 0.98 * (pitch + gyrXRaw * 0.01) + 0.02 * (accelX);
+  
+  angleY = 0.98 * (pitch + gyrYRaw * 0.01) + 0.02 * (accelY);
+  
+  angleZ = 0.98 * (pitch + gyrZRaw * 0.01) + 0.02 * (accelZ);
+
+  Serial.println(String("     AngleX: ") + angleX + String("     AngleY: ") + angleY + String("     AngleZ: ") + angleZ);
+  
+  if (angleX > 200) {
+    angleX = angleX / 10; 
+  }
+  if (angleY > 200) {
+    angleY = angleY / 10; 
+  }
+  if (angleZ > 200) {
+    angleZ = angleX / 10; 
+  }
+  */
+  //Serial.println(String("Roll: ") + roll + String("    Pitch: ") + pitch);
+
+  Serial.println(String("accelXRaw: ") + gyrX + String("        accelYRaw: ") + gyrY + String("        accelZRaw: ") + gyrZ);
+
+  Serial.println();  
+
+  
   
 }
