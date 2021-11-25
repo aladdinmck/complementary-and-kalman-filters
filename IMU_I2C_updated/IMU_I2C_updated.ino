@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <math.h>
 #include <MLX90393.h> 
 #include <SparkFunLSM6DSO.h>
 
@@ -14,12 +15,22 @@ LSM6DSO LSM;
 float magX, magY, magZ, magTemp, accelX, accelY, accelZ, gyrX, gyrY, gyrZ, IMUTemp;
 uint16_t accelXRaw, accelYRaw, accelZRaw, gyrXRaw, gyrYRaw, gyrZRaw, accelRange, gyroRange;
 float gyroDataRange, accelDataRange;
+float aPitch;
+float aRoll;
+
 float pitch;
 float roll;
 
 float angleX = 0;
 float angleY = 0;
 float angleZ = 0;
+
+float gRoll = 0;
+float gPitch = 90;
+float gYaw = 0;
+
+float mYaw = 0;
+
 
 //float dt = millis();
 
@@ -55,6 +66,9 @@ void setup()
   }
   delay(500);
 }//end of setup
+
+
+
 
 //Below are functions for pulling data from sensors. Each 3-axis "piece" is passed into individual functions to make it easier to manipulate. 
 //Simply call the function in the loop and then decide which data you want to print/use
@@ -180,15 +194,14 @@ void loop()
   accelYRaw = LSM.readRawAccelY();
   accelZRaw = LSM.readRawAccelZ();
 */
-  /*
-  roll = atan2(accelYRaw, accelZRaw) * 180 / M_PI;
-  pitch = acos(accelX) * 180 / M_PI;
-
-  angleX = 0.98 * (pitch + gyrXRaw * 0.01) + 0.02 * (accelX);
   
-  angleY = 0.98 * (pitch + gyrYRaw * 0.01) + 0.02 * (accelY);
   
-  angleZ = 0.98 * (pitch + gyrZRaw * 0.01) + 0.02 * (accelZ);
+/*
+  angleX = 0.98 * ((pitch + gyrXRaw) * 0.01) + 0.02 * (accelX);
+  
+  angleY = 0.98 * ((pitch + gyrYRaw) * 0.01) + 0.02 * (accelY);
+  
+  //angleZ = 0.98 * (pitch + gyrZRaw * 0.01) + 0.02 * (accelZ);
 
   Serial.println(String("     AngleX: ") + angleX + String("     AngleY: ") + angleY + String("     AngleZ: ") + angleZ);
   
@@ -203,11 +216,46 @@ void loop()
   }
   */
   //Serial.println(String("Roll: ") + roll + String("    Pitch: ") + pitch);
+  //Serial.println(String("accelXRaw: ") + gyrX + String("        accelYRaw: ") + gyrY + String("        accelZRaw: ") + gyrZ);
 
-  Serial.println(String("accelXRaw: ") + gyrX + String("        accelYRaw: ") + gyrY + String("        accelZRaw: ") + gyrZ);
+  // accelerometer roll and pitch 
+  aRoll = atan2(accelYRaw, accelZRaw) * 180 / M_PI;
+  aPitch = acos(accelX) * 180 / M_PI;
 
-  Serial.println();  
+  roll = aRoll;
+  pitch = aPitch;
 
+  // gyrometer roll, pitch and yaw
+  gRoll += ((gyrX + gyrY * sin(aRoll) * tan(aPitch) + gyrZ * cos(aRoll) * tan(aPitch)) * dt);
+  gPitch += ((gyrY * cos(aRoll) - gyrZ * sin(aPitch)) * 0.04); // use 0.04 if dt isnt enough
+  gYaw += (gyrX + gyrY * sin(aRoll) * (1 / cos(aPitch)) + gyrZ * cos(aRoll) * (1 / cos(aPitch)) * dt);
+
+
+  float mag_norm = sqrt((magX * magX) + (magY * magY) + (magZ * magZ));
+  magX = magX / mag_norm;
+  magY = magY / mag_norm;
+  magZ = magZ / mag_norm;
+  
+  // magnetometer yaw
+  mYaw = 10 * atan2((-magY * cos(roll) + magZ * sin(roll)), (magX * cos(pitch) + magY * sin(pitch) * sin(roll) + magZ * sin(pitch) * cos(roll)));
+
+
+  if (gRoll > 180) {
+    gRoll = 0;
+  }
+  if (gPitch > 180) {
+    gPitch = 90;  
+  }
+  if (gYaw > 180) {
+    gYaw = 0;
+  }
+  if (mYaw > 180) {
+    mYaw = 0;
+  }
+
+  
+  Serial.println(String("        mYaw: ") + abs(mYaw));  
+  // String(" tch: ") + abs(aPitch) + 
   
   
 }
