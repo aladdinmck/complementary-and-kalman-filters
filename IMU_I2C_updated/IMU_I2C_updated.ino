@@ -3,6 +3,8 @@
 #include <MLX90393.h> 
 #include <SparkFunLSM6DSO.h>
 
+
+
 MLX90393 MLX;
 MLX90393::txyz data; //Create a structure, called data, of four floats (t, x, y, and z)
 LSM6DSO LSM;
@@ -215,6 +217,19 @@ void loop()
     angleZ = angleX / 10; 
   }
   */
+
+  /*
+  float mag_norm = sqrt((magX * magX) + (magY * magY) + (magZ * magZ));
+  magX = magX / mag_norm;
+  magY = magY / mag_norm;
+  magZ = magZ / mag_norm;
+  */
+  
+  // magnetometer yaw
+  //mYaw = 10 * atan2((-magY * cos(roll) + magZ * sin(roll)), (magX * cos(pitch) + magY * sin(pitch) * sin(roll) + magZ * sin(pitch) * cos(roll)));
+
+
+  
   //Serial.println(String("Roll: ") + roll + String("    Pitch: ") + pitch);
   //Serial.println(String("accelXRaw: ") + gyrX + String("        accelYRaw: ") + gyrY + String("        accelZRaw: ") + gyrZ);
 
@@ -226,20 +241,18 @@ void loop()
   pitch = aPitch;
 
   // gyrometer roll, pitch and yaw
-  gRoll += ((gyrX + gyrY * sin(aRoll) * tan(aPitch) + gyrZ * cos(aRoll) * tan(aPitch)) * dt);
+  gRoll += ((gyrX + gyrY * sin(aRoll) * tan(aPitch) + gyrZ * cos(aRoll) * tan(aPitch)) * 0.04);
   gPitch += ((gyrY * cos(aRoll) - gyrZ * sin(aPitch)) * 0.04); // use 0.04 if dt isnt enough
   gYaw += (gyrX + gyrY * sin(aRoll) * (1 / cos(aPitch)) + gyrZ * cos(aRoll) * (1 / cos(aPitch)) * dt);
 
-
-  float mag_norm = sqrt((magX * magX) + (magY * magY) + (magZ * magZ));
-  magX = magX / mag_norm;
-  magY = magY / mag_norm;
-  magZ = magZ / mag_norm;
+  // Complementary Filter Variable 
+  float rollCF = 0.90 * (roll + gyrX * dt) + 0.1 * (accelX);
+  float pitchCF = 0.90 * (pitch + gyrY * dt) + 0.1 * (accelY);
   
-  // magnetometer yaw
-  mYaw = 10 * atan2((-magY * cos(roll) + magZ * sin(roll)), (magX * cos(pitch) + magY * sin(pitch) * sin(roll) + magZ * sin(pitch) * cos(roll)));
 
-
+  Serial.println(String("        pitchCF: ") + abs(pitchCF) + String("        pitchAcc: ") + abs(aPitch) + String("        gPitch: ") + abs(gPitch));  
+  // String(" tch: ") + abs(aPitch) + 
+  
   if (gRoll > 180) {
     gRoll = 0;
   }
@@ -249,13 +262,4 @@ void loop()
   if (gYaw > 180) {
     gYaw = 0;
   }
-  if (mYaw > 180) {
-    mYaw = 0;
-  }
-
-  
-  Serial.println(String("        mYaw: ") + abs(mYaw));  
-  // String(" tch: ") + abs(aPitch) + 
-  
-  
 }
