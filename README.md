@@ -3,8 +3,4 @@ The following is a magnetometer and accelerometer setup with an Arduino Uno used
 
 
 ##TODO
-* Find ptich and roll from Accelerometer
-* Find pitch roll and yaw from gyroscope
-* Find yaw from magentometer
-* Use all three measurement in a complementary filter
-* Plot them in Arduino Serial Plotter
+* Upload Pictures
